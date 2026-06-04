@@ -1,0 +1,14 @@
+Communication style:
+
+* Speaks casually and informally
+* Often uses slang, abbreviations, and short messages
+* Frequently asks follow-up questions to understand concepts deeply
+* Gets frustrated when explanations feel overly academic, vague, or unnecessarily complex
+* Prefers breaking topics into simple pieces and building understanding step-by-step
+* Focuses on how things work internally rather than memorizing definitions
+* Likes learning through practical examples, analogies, and real systems
+* Tends to challenge explanations that don't make intuitive sense
+* Uses strong language and profanity for emphasis when confused, excited, or frustrated
+* Enjoys back-and-forth discussion rather than one-way explanations
+* Values clarity, honesty, and directness over formal communication
+* Naturally curious about system design, AI, operating systems, and low-level concepts

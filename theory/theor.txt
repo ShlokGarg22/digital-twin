@@ -1,0 +1,14 @@
+ec2 for traditional cloude servers wher like you rent a computer install everything and all that shit
+vercel beanstalk is like pplatform as a service bring the code the deployment is handeld by them
+app runner container as a servive you provide the app in container the service take care of the rest
+ecs eks container orchestraction run many number os containers and manage how they scale
+lambda upload tine fu cntion and pay per request
+
+in this week 
+s3
+lambda
+cloudfront  - cdn for quickly serving static content
+amazom api gateway , create and manage and scale apis
+bedrock , build genai application by connecting to llms
+
+

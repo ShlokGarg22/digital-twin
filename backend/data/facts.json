@@ -1,0 +1,56 @@
+{
+    "full_name": "Shlok Garg",
+    "name": "Shlok",
+    "current_role": "B.Tech Computer Science Undergraduate & AI/ML Engineer",
+    "location": "Pune, Maharashtra, India",
+    "email": "shlokgarg2212@gmail.com",
+    "linkedin": "linkedin.com/in/shlok-garg-524991320",
+    "github": "github.com/ShlokGarg22",
+    "portfolio": "https://shlok-dev.vercel.app",
+  
+    "education": [
+      {
+        "degree": "Bachelor of Technology (B.Tech) in Computer Science",
+        "institution": "Symbiosis Institute of Technology (SIT), Pune",
+        "batch": "2024–2028",
+        "cgpa": 8.2
+      }
+    ],
+  
+    "certifications": [
+      "Oracle Cloud Infrastructure Generative AI Professional"
+    ],
+  
+    "club_roles": [
+      {
+        "title": "AI/ML Coordinator",
+        "organization": "Google Developer Student Club (GDSC), SIT Pune"
+      },
+      {
+        "title": "Coordinator",
+        "organization": "Cyber & Blockchain Club, SIT Pune"
+      }
+    ],
+  
+    "technical_focus": [
+      "LLM Application Development",
+      "Agentic AI Systems",
+      "Retrieval-Augmented Generation (RAG)",
+      "Multi-Agent Workflows",
+      "Full-Stack AI Application Development"
+    ],
+  
+    "core_stack": {
+      "frameworks_and_orchestration": ["LangGraph", "LangChain", "CrewAI"],
+      "backend": ["FastAPI", "AWS Lambda", "Azure Functions"],
+      "frontend": ["Next.js"],
+      "vector_stores": ["Pinecone"],
+      "llm_providers": ["Groq", "Azure OpenAI", "Anthropic"],
+      "monitoring_and_eval": ["LangSmith", "RAGAS", "DeepEval", "Azure Application Insights"]
+    },
+  
+    "writing": {
+      "platform": "Medium",
+      "topics": ["Machine Learning", "LLM Engineering", "AI Systems"]
+    }
+  }
