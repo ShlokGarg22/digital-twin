@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Image as ImageIcon, X } from 'lucide-react';
 
 interface Message {
     id: string;
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    imageUrl?: string;
 }
 
 export default function Twin() {
@@ -15,8 +16,11 @@ export default function Twin() {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [sessionId, setSessionId] = useState<string>('');
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,21 +30,62 @@ export default function Twin() {
         scrollToBottom();
     }, [messages]);
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setSelectedImage(file);
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const removeImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const sendMessage = async () => {
-        if (!input.trim() || isLoading) return;
+        if ((!input.trim() && !selectedImage) || isLoading) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: input,
+            content: input || "What's in this image?",
             timestamp: new Date(),
+            imageUrl: imagePreview || undefined,
         };
 
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
+        
+        const currentImage = selectedImage;
+        const currentPreview = imagePreview;
+        
+        removeImage();
 
         try {
+            // Extract base64 and type if image exists
+            let image_base64 = undefined;
+            let image_type = undefined;
+            
+            if (currentPreview && currentImage) {
+                // currentPreview is a data URL like "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+                const parts = currentPreview.split(',');
+                if (parts.length === 2) {
+                    image_base64 = parts[1];
+                    image_type = currentImage.type;
+                }
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
                 method: 'POST',
                 headers: {
@@ -49,6 +94,8 @@ export default function Twin() {
                 body: JSON.stringify({
                     message: userMessage.content,
                     session_id: sessionId || undefined,
+                    image_base64,
+                    image_type,
                 }),
             });
 
@@ -159,6 +206,13 @@ export default function Twin() {
                                     : 'bg-white border border-gray-200 text-gray-800'
                                 }`}
                         >
+                            {message.imageUrl && (
+                                <img 
+                                    src={message.imageUrl} 
+                                    alt="Uploaded content" 
+                                    className="max-w-full rounded-md mb-2 max-h-64 object-contain"
+                                />
+                            )}
                             <p className="whitespace-pre-wrap">{message.content}</p>
                             <p
                                 className={`text-xs mt-1 ${message.role === 'user' ? 'text-slate-300' : 'text-gray-500'
@@ -206,9 +260,40 @@ export default function Twin() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
+            {/* Input Area */}
             <div className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
-                <div className="flex gap-2">
+                {imagePreview && (
+                    <div className="mb-3 relative inline-block">
+                        <img 
+                            src={imagePreview} 
+                            alt="Preview" 
+                            className="h-20 w-20 object-cover rounded-md border border-gray-300"
+                        />
+                        <button 
+                            onClick={removeImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-sm"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+                
+                <div className="flex gap-2 items-center">
+                    <input 
+                        type="file" 
+                        accept="image/jpeg, image/png, image/webp, image/gif" 
+                        className="hidden" 
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading}
+                        className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors focus:outline-none flex-shrink-0"
+                        title="Upload image"
+                    >
+                        <ImageIcon className="w-6 h-6" />
+                    </button>
                     <input
                         ref={inputRef}
                         type="text"
@@ -222,7 +307,7 @@ export default function Twin() {
                     />
                     <button
                         onClick={sendMessage}
-                        disabled={!input.trim() || isLoading}
+                        disabled={(!input.trim() && !selectedImage) || isLoading}
                         className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <Send className="w-5 h-5" />

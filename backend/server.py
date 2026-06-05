@@ -8,6 +8,7 @@ import json
 import uuid
 from datetime import datetime
 import boto3
+import base64
 from botocore.exceptions import ClientError
 from context import prompt
 
@@ -49,6 +50,8 @@ if USE_S3:
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    image_base64: Optional[str] = None
+    image_type: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -103,8 +106,13 @@ def save_conversation(session_id: str, messages: List[Dict]):
             json.dump(messages, f, indent=2)
 
 
-def call_bedrock(conversation: List[Dict], user_message: str) -> str:
-    """Call AWS Bedrock with conversation history"""
+def call_bedrock(
+    conversation: List[Dict],
+    user_message: str,
+    image_base64: Optional[str] = None,
+    image_type: Optional[str] = None,
+) -> str:
+    """Call AWS Bedrock with conversation history and optional image"""
     
     # Build messages in Bedrock format
     messages = []
@@ -123,10 +131,36 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
             "content": [{"text": msg["content"]}]
         })
     
+    # Build current user message
+    user_content = []
+    
+    # Add image if provided
+    if image_base64 and image_type:
+        try:
+            # Extract format (e.g., 'image/jpeg' -> 'jpeg')
+            image_format = image_type.split('/')[-1]
+            # Bedrock expects 'jpeg', 'png', 'gif', 'webp'
+            if image_format == 'jpg':
+                image_format = 'jpeg'
+                
+            image_bytes = base64.b64decode(image_base64)
+            user_content.append({
+                "image": {
+                    "format": image_format,
+                    "source": {"bytes": image_bytes}
+                }
+            })
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            raise HTTPException(status_code=400, detail="Invalid image format")
+            
+    # Add text
+    user_content.append({"text": user_message})
+    
     # Add current user message
     messages.append({
         "role": "user",
-        "content": [{"text": user_message}]
+        "content": user_content
     })
     
     try:
@@ -187,11 +221,21 @@ async def chat(request: ChatRequest):
         conversation = load_conversation(session_id)
 
         # Call Bedrock for response
-        assistant_response = call_bedrock(conversation, request.message)
+        assistant_response = call_bedrock(
+            conversation,
+            request.message,
+            request.image_base64,
+            request.image_type
+        )
 
+        # Update conversation history (don't save base64 to avoid bloat)
+        history_message = request.message
+        if request.image_base64:
+            history_message = f"[Image provided] {request.message}"
+            
         # Update conversation history
         conversation.append(
-            {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
+            {"role": "user", "content": history_message, "timestamp": datetime.now().isoformat()}
         )
         conversation.append(
             {
